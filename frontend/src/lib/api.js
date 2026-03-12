@@ -79,7 +79,7 @@ class LnxApi {
   }
 
   async search(query, options = {}) {
-    console.log(`[API] Search called: query="${query}", index=${options.index}, limit=${options.limit}, semantic=${options.semantic}`);
+    console.log(`[API] Search called: query="${query}", index=${options.index}, limit=${options.limit}, semantic=${options.semantic}, all=${options.allOccurrences}`);
     return this.request('/query/simple', {
       method: 'POST',
       body: JSON.stringify({
@@ -87,6 +87,7 @@ class LnxApi {
         query,
         limit: options.limit || 10,
         semantic: options.semantic === true, // Ensure it's always a boolean
+        all_occurrences: options.allOccurrences === true,
       }),
     });
   }

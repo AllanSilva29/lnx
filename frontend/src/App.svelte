@@ -3,7 +3,8 @@
   import api from './lib/api.js';
   import SearchBar from './lib/SearchBar.svelte';
   import SearchOptions from './lib/SearchOptions.svelte';
-  import ResultsGallery from './lib/ResultsGallery.svelte';
+  import ExpandedGallery from './lib/ExpandedGallery.svelte';
+  import PageViewer from './lib/PageViewer.svelte';
   import IndexesTab from './lib/IndexesTab.svelte';
   import ImportTab from './lib/ImportTab.svelte';
 
@@ -25,6 +26,8 @@ let lastSearchTime = 0;
     semantic: false,
     limit: 50
   };
+  
+  let selectedResult = null;
 
   onMount(async () => {
     try {
@@ -68,7 +71,8 @@ let lastSearchTime = 0;
       const response = await api.search(query, { 
         index: selectedIndex, 
         limit: searchOptions.limit,
-        semantic: searchOptions.semantic
+        semantic: searchOptions.semantic,
+        allOccurrences: true
       });
       results = response.results || [];
     } catch (e) {
@@ -90,6 +94,14 @@ let lastSearchTime = 0;
       if (searchTimeout) clearTimeout(searchTimeout);
       handleSearch();
     }
+  }
+
+  function openPageViewer(result) {
+    selectedResult = result;
+  }
+
+  function closePageViewer() {
+    selectedResult = null;
   }
 </script>
 
@@ -121,7 +133,7 @@ let lastSearchTime = 0;
       <SearchOptions bind:indexes bind:selectedIndex bind:searchOptions />
     </section>
 
-    <ResultsGallery {results} {loading} {query} {error} {searchOptions} />
+    <ExpandedGallery {results} {loading} {query} {error} {searchOptions} on:selectResult={(e) => openPageViewer(e.detail)} />
   {/if}
 
   {#if activeTab === 'indexes'}
@@ -142,6 +154,10 @@ let lastSearchTime = 0;
     />
   {/if}
 </main>
+
+{#if selectedResult}
+  <PageViewer result={selectedResult} query={query} onClose={closePageViewer} />
+{/if}
 
 <style>
   :global(body) {

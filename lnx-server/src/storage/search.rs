@@ -38,6 +38,8 @@ pub fn search_index(
     tracing::debug!("Query parsed successfully: {:?}", query);
 
     let top_docs = searcher.search(&query, &TopDocs::with_limit(limit))?;
+    
+    tracing::info!("Search returned {} documents for query: '{}'", top_docs.len(), query_str);
 
     let schema = index.schema();
     let text_fields: Vec<Field> = fields.values().copied().collect();
@@ -62,6 +64,13 @@ pub fn search_index(
         let section_num = section_field
             .and_then(|f| retrieved_doc.get_first(f))
             .and_then(|v| v.as_i64());
+
+        // Debug logging para verificar número da página
+        if let Some(page) = page_num {
+            tracing::debug!("Found result in page {} for file '{}'", page, filename);
+        }
+        
+        tracing::debug!("Processing document: {} with {} text fields", filename, text_fields.len());
 
         let mut occurrences = Vec::new();
 
@@ -211,6 +220,8 @@ pub fn search_index(
             .map(|count| count > 0)
             .unwrap_or(false)
     });
+
+    tracing::info!("Final results after filtering: {} documents with occurrences", results.len());
 
     Ok(results)
 }

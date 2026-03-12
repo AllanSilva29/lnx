@@ -290,6 +290,7 @@ impl Storage {
         }
 
         if let (Some(pf), Some(pn)) = (page_field, page_num) {
+            tracing::debug!("Adding page number {} to document {}", pn, id);
             doc.add_i64(pf, pn);
         }
 

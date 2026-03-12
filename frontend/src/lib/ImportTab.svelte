@@ -12,17 +12,47 @@
   let importResult = null;
   let importProgress = '';
   let importedDocuments = [];
+  let progressPercentage = 0;
+  let currentFile = '';
+  let processedCount = 0;
+  let totalCount = 0;
 
   async function doImport() {
-    const result = await handleFileImport(importFiles, selectedIndex, api);
-    importResult = result.message;
-    importProgress = result.progress;
-    error = result.error;
-    if (result.documents) {
-      importedDocuments = [...importedDocuments, ...result.documents];
-    }
-    if (result.success) {
-      importFiles = [];
+    loading = true;
+    progressPercentage = 0;
+    currentFile = '';
+    processedCount = 0;
+    totalCount = importFiles.length;
+    importProgress = `Starting import of ${totalCount} file(s)...`;
+    
+    try {
+      const result = await handleFileImport(importFiles, selectedIndex, api, {
+        onProgress: (progress) => {
+          progressPercentage = progress.percentage || 0;
+          currentFile = progress.currentFile || '';
+          processedCount = progress.processed || 0;
+          importProgress = progress.message || '';
+        }
+      });
+      
+      importResult = result.message;
+      importProgress = result.progress;
+      error = result.error;
+      
+      if (result.documents) {
+        importedDocuments = [...importedDocuments, ...result.documents];
+      }
+      
+      if (result.success) {
+        importFiles = [];
+        progressPercentage = 100;
+        importProgress = 'Import completed successfully!';
+      }
+    } catch (e) {
+      error = `Import failed: ${e.message}`;
+      importProgress = '';
+    } finally {
+      loading = false;
     }
   }
 
@@ -30,11 +60,24 @@
     if (confirm('Clear all imported documents from this session?')) {
       importedDocuments = [];
       importResult = null;
+      progressPercentage = 0;
+      currentFile = '';
+      processedCount = 0;
+      totalCount = 0;
+      importProgress = '';
     }
   }
 
   function onFileChange(e) {
     importFiles = Array.from(e.target.files);
+    // Reset progress state when files change
+    progressPercentage = 0;
+    currentFile = '';
+    processedCount = 0;
+    totalCount = 0;
+    importProgress = '';
+    importResult = null;
+    error = null;
   }
 </script>
 
@@ -58,6 +101,10 @@
     {importResult} 
     {importProgress} 
     {error}
+    {progressPercentage}
+    {currentFile}
+    {processedCount}
+    {totalCount}
     onImport={doImport}
     onFileChange={onFileChange}
   />

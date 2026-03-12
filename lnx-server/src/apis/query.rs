@@ -31,6 +31,8 @@ pub struct SimpleSearchRequest {
     pub limit: usize,
     #[serde(default)]
     pub semantic: bool,
+    #[serde(default)]
+    pub all_occurrences: bool,
 }
 
 fn default_limit() -> usize { 10 }
@@ -67,11 +69,20 @@ impl LnxQueryApi {
     ) -> poem::Result<Json<SearchResult>> {
         let start = std::time::Instant::now();
         
+        tracing::info!("Received search request: index='{}', query='{}', limit={}, all_occurrences={}", 
+            payload.index, payload.query, payload.limit, payload.all_occurrences);
+        
         // If semantic search is enabled, combine keyword + semantic results
+        let search_limit = if payload.all_occurrences { 10000 } else { payload.limit };
+        
         let results = if payload.semantic {
             // Get keyword results
-            let keyword_results = match self.storage.search(&payload.index, &payload.query, payload.limit) {
-                Ok(r) => r,
+            tracing::info!("Performing semantic search with limit {}", search_limit);
+            let keyword_results = match self.storage.search(&payload.index, &payload.query, search_limit) {
+                Ok(r) => {
+                    tracing::info!("Keyword search returned {} results", r.len());
+                    r
+                },
                 Err(e) => {
                     tracing::error!("Keyword search error: {}", e);
                     vec![]
@@ -83,8 +94,12 @@ impl LnxQueryApi {
             tracing::info!("Semantic search requested but not yet fully implemented");
             keyword_results
         } else {
-            match self.storage.search(&payload.index, &payload.query, payload.limit) {
-                Ok(r) => r,
+            tracing::info!("Performing regular search with limit {}", search_limit);
+            match self.storage.search(&payload.index, &payload.query, search_limit) {
+                Ok(r) => {
+                    tracing::info!("Regular search returned {} results", r.len());
+                    r
+                },
                 Err(e) => {
                     tracing::error!("Search error: {}", e);
                     return Err(poem::Error::from_string(
@@ -96,6 +111,8 @@ impl LnxQueryApi {
         };
         
         let took = start.elapsed().as_millis() as u64;
+        
+        tracing::info!("Search completed: {} results in {}ms", results.len(), took);
         
         Ok(Json(SearchResult {
             results: results.clone(),
