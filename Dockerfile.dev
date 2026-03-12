@@ -1,0 +1,18 @@
+FROM rust:1.85-bookworm
+
+WORKDIR /code
+
+RUN apt-get update && \
+    apt-get install -y \
+    libreoffice-writer \
+    libreoffice-core \
+    libreoffice-common \
+    poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY . /code
+
+# Create data directory with proper permissions
+RUN mkdir -p /var/lib/lnx/data
+
+CMD ["cargo", "run", "--", "run"]

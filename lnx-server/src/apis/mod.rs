@@ -1,11 +1,15 @@
 use poem_openapi::Tags;
 
+mod document;
 mod health;
 mod info;
+mod index;
 mod query;
 
+pub use self::document::LnxDocumentApi;
 pub use self::health::LnxHealthApi;
 pub use self::info::LnxInfoApi;
+pub use self::index::LnxIndexApi;
 pub use self::query::LnxQueryApi;
 
 #[derive(Tags)]
@@ -36,6 +40,16 @@ pub(super) enum Tag {
     ///     * Memory usage/allowance
     ///
     InfoEndpoints,
+    #[oai(rename = "Index Endpoints")]
+    /// Index management endpoints
+    ///
+    /// Create, delete, and list indexes.
+    IndexEndpoints,
+    #[oai(rename = "Document Endpoints")]
+    /// Document indexing endpoints
+    ///
+    /// Add documents to indexes.
+    DocumentEndpoints,
     #[oai(rename = "Query Endpoints")]
     QueryEndpoints,
 }

@@ -39,7 +39,7 @@ poem = { version = "3.1", features = ["anyhow"] }
 poem-openapi = { version = "5.1", features = ["redoc", "url", "humantime"] }
 url = { version = "2", features = ["serde"] }
 ulid = { version = "1", features = ["serde"] }
-tantivy = { git = "https://github.com/ChillFish8/tantivy.git", branch = "lnx-dev", default-features = false, features = ["async"] }
+tantivy = { git = "https://github.com/ChillFish8/tantivy.git", branch = "lnx-dev", default-features = false, features = ["async", "mmap"] }
 opendal = { version = "0.50.2", default-features = false }
 rend = { version = "0.5.2", features = ["bytemuck-1"] }
 rkyv = { version = "0.8.8", features = ["little_endian", "pointer_width_32"] }

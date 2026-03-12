@@ -69,4 +69,97 @@ As much as lnx provides a wide range of features, it can not do it all being suc
 - sccache
 - linux os
 
+## Development Workflow
+
+This project includes a streamlined development workflow with Docker Compose for easy debugging and testing.
+
+### Quick Start
+
+1. **Start debug containers:**
+   ```bash
+   docker compose up lnx-debug lnx-dev -d
+   ```
+
+2. **Check compilation:**
+   ```bash
+   ./debug.sh check
+   ```
+
+3. **Build when ready:**
+   ```bash
+   ./debug.sh build
+   ```
+
+4. **Run the dev server:**
+   ```bash
+   ./debug.sh run
+   ```
+
+### Debug Script Commands
+
+The `debug.sh` script provides easy access to common development tasks:
+
+```bash
+./debug.sh {check|build|run|shell|dev-shell}
+```
+
+- **check** - Check compilation errors without building
+- **build** - Build the project 
+- **run** - Run the development server on port 4203
+- **shell** - Open pure debugging shell (lnx-debug container)
+- **dev-shell** - Open development shell (lnx-dev container)
+
+### How It Works - Step by Step
+
+**1. Start the containers:**
+```bash
+docker compose up lnx-debug lnx-dev -d
+```
+This starts two containers:
+- `lnx-debug`: Pure debugging environment (no server running)
+- `lnx-dev`: Development environment with server capabilities
+
+**2. Check compilation without building:**
+```bash
+./debug.sh check
+```
+This runs `cargo check --package lnx-server` inside the debug container, giving you fast compilation feedback without the overhead of a full build.
+
+**3. Build when compilation is clean:**
+```bash
+./debug.sh build
+```
+This runs `cargo build --package lnx-server` to create the binary.
+
+**4. Run the development server:**
+```bash
+./debug.sh run
+```
+This starts the lnx server in the `lnx-dev` container. The server will be accessible at `http://localhost:4203` because port 4203 is exposed in docker-compose.yml.
+
+**Why this workflow?**
+- **Fast iteration**: `check` is much faster than `build`
+- **Separation of concerns**: Debug container for compilation, dev container for running
+- **No interference**: Compilation testing doesn't affect the running server
+- **Live mounting**: Source code changes are reflected immediately in both containers
+
+### Container Services
+
+- **lnx** - Production server (port 4202) - accessible at http://localhost:4202
+- **lnx-dev** - Development environment with mounted source code (port 4203) - accessible at http://localhost:4203
+- **lnx-debug** - Pure debugging container for compilation testing (no ports exposed)
+
+### File Import & Persistence
+
+**Known Issue**: The current storage implementation uses in-memory indexes (`RamDirectory`) which means data is not persisted between container restarts. This is being actively worked on.
+
+For now, you can test the import functionality, but data will be lost when containers restart.
+
+### Debugging Tips
+
+- Use `./debug.sh check` after making code changes to quickly verify compilation
+- The `lnx-debug` container is optimized for debugging with no server overhead
+- Source code is mounted live, so changes are reflected immediately
+- Use `./debug.sh shell` to access the debugging environment for manual testing
+
 

@@ -1,0 +1,46 @@
+services:
+  lnx:
+    build: .
+    ports:
+      - "4202:4202"
+    volumes:
+      - lnx_data:/var/lib/lnx/data/
+    environment:
+      - LNX_LISTEN_ADDRESS=0.0.0.0:4202
+      - LNX_DATA_PATH=/var/lib/lnx/data/
+      - LNX_LOG_LEVEL=info
+    restart: unless-stopped
+
+  lnx-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "4203:4203"
+    volumes:
+      - .:/code
+      - lnx_data:/var/lib/lnx/data/
+    environment:
+      - LNX_LISTEN_ADDRESS=0.0.0.0:4203
+      - LNX_DATA_PATH=/var/lib/lnx/data/
+      - LNX_LOG_LEVEL=debug
+    # Keep running for manual debugging
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+
+  lnx-debug:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - .:/code
+    environment:
+      - LNX_LOG_LEVEL=debug
+    # Pure debugging container - no server running
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+
+volumes:
+  lnx_data:

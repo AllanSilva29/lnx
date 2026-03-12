@@ -4,7 +4,8 @@ WORKDIR /code
 
 COPY . /code
 
-RUN cargo build --release
+# Skip the build step for debugging
+# RUN cargo build --release
 
 # Copy the binary into a new container for a smaller docker image
 FROM debian:bookworm-slim
@@ -18,11 +19,15 @@ RUN apt-get update && \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /code/target/release/lnx /
+# Copy the source code instead of pre-built binary
+COPY --from=build /code /code
+WORKDIR /code
+
+# Install Rust for manual building
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    PATH="/root/.cargo/bin:$PATH"
+
 USER root
 
-# Create data directory with proper permissions
-RUN mkdir -p /var/lib/lnx/data && \
-    chown -R root:root /var/lib/lnx
-
-ENTRYPOINT ["./lnx", "run"]
+# Default entrypoint that you can override
+ENTRYPOINT ["/bin/bash"]
