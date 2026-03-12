@@ -51,11 +51,11 @@
 </script>
 
 {#if result}
-  <div class="page-viewer-overlay" on:click={onClose}>
-    <div class="page-viewer-content" on:click|stopPropagation>
+  <div class="page-viewer-overlay" role="dialog" aria-modal="true" aria-labelledby="page-viewer-title" tabindex="-1" on:click={onClose} on:keydown={(e) => e.key === 'Escape' && onClose()}>
+    <div class="page-viewer-content" role="document">
       <div class="page-viewer-header">
         <div class="file-info">
-          <h2>{result.filename}</h2>
+          <h2 id="page-viewer-title">{result.filename}</h2>
           <div class="location">
             {#if result.currentBlock.page !== null && result.currentBlock.page !== undefined}
               Página {result.currentBlock.page}
